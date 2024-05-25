@@ -10,7 +10,10 @@
 #include "InputMappingContext.h"
 #include "InputAction.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/Controller.h"
+#include "Components/CapsuleComponent.h"
+
 
 
 // Sets default values
@@ -34,6 +37,10 @@ ARunCharacter::ARunCharacter()
 void ARunCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	RunGameMode = Cast<AEndlessRunnerGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+
+	check(RunGameMode);
 }
 
 void ARunCharacter::MoveRight(const FInputActionValue& Value)
@@ -56,6 +63,9 @@ void ARunCharacter::MoveRight(const FInputActionValue& Value)
 			AddMovementInput(ForwardDirection, InputValue.Y);
 		}
 	}
+
+	NextLane = FMath::Clamp(CurrentLane - 1, 0, 2);
+	ChangeLane();
 }
 
 void ARunCharacter::MoveLeft(const FInputActionValue& Value)
@@ -78,6 +88,9 @@ void ARunCharacter::MoveLeft(const FInputActionValue& Value)
 			AddMovementInput(ForwardDirection, InputValue.Y);
 		}
 	}
+
+	NextLane = FMath::Clamp(CurrentLane + 1, 0, 2);
+	ChangeLane();
 }
 
 void ARunCharacter::MoveDown(const FInputActionValue& Value)
@@ -140,3 +153,14 @@ void ARunCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	}
 }
 
+void ARunCharacter::ChangeLaneUpdate(float Value)
+{
+	FVector Location = GetCapsuleComponent()->GetComponentLocation();
+	Location.Y = FMath::Lerp(RunGameMode->LaneSwitchValues[CurrentLane], RunGameMode->LaneSwitchValues[NextLane], Value);
+	SetActorLocation(Location);
+}
+
+void ARunCharacter::ChangeLaneFinished()
+{
+	CurrentLane = NextLane;
+}

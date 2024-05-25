@@ -23,6 +23,21 @@ private:
 	class AEndlessRunnerGameModeBase* RunGameMode;
 
 public:
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite)
+	int32 CurrentLane = 1;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite)
+	int32 NextLane;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Lane")
+	void ChangeLane();
+
+	UFUNCTION(BlueprintCallable, Category = "Lane")
+	void ChangeLaneUpdate(float Value);
+
+	UFUNCTION(BlueprintCallable, Category = "Lane")
+	void ChangeLaneFinished();
+
 	// Sets default values for this character's properties
 	ARunCharacter();
 
