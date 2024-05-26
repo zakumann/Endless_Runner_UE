@@ -11,6 +11,7 @@
 class UStaticMeshComponent;
 class USceneComponent;
 class UBoxComponent;
+class AObstacle;
 
 UCLASS()
 class ENDLESSRUNNER_API AFloorTile : public AActor
@@ -18,6 +19,8 @@ class ENDLESSRUNNER_API AFloorTile : public AActor
 	GENERATED_BODY()
 	
 public:	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
+	TSubclassOf<AObstacle> SmallObstacleClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USceneComponent* SceneComponent;
@@ -40,6 +43,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* FloorTriggerBox;
 
+	UFUNCTION(BlueprintCallable)
+	void SpawnItems();
+
 	// Sets default values for this actor's properties
 	AFloorTile();
 
@@ -59,13 +65,11 @@ protected:
 	void OnTriggerBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
+	void SpawnLaneItem(UArrowComponent* Lane);
+
+	UFUNCTION()
 	void DestroyFloorTile();
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 };
