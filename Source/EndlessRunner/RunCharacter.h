@@ -23,6 +23,13 @@ private:
 	class AEndlessRunnerGameModeBase* RunGameMode;
 
 public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Assets")
+	class UParticleSystem* DeathParticleSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Assets")
+	class USoundBase* DeathSound;
+
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite)
 	int32 CurrentLane = 1;
 
@@ -37,6 +44,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Lane")
 	void ChangeLaneFinished();
+
+	UFUNCTION(BlueprintCallable)
+	void Death();
 
 	// Sets default values for this character's properties
 	ARunCharacter();
@@ -60,9 +70,19 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void OnDeath();
+
 	void MoveRight(const FInputActionValue& Value);
 	void MoveLeft(const FInputActionValue& Value);
 	void MoveDown(const FInputActionValue& Value);
+
+	UPROPERTY()
+	FTimerHandle RestartTimerHandle;
+
+	UPROPERTY()
+	bool bIsDead = false;
+
 
 public:	
 	// Called every frame

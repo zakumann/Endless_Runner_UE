@@ -43,6 +43,51 @@ void ARunCharacter::BeginPlay()
 	check(RunGameMode);
 }
 
+void ARunCharacter::Death()
+{	
+	if (!bIsDead)
+	{
+		const FVector Location = GetActorLocation();
+
+		UWorld* World = GetWorld();
+
+		if (World)
+		{
+			bIsDead = true;
+			DisableInput(nullptr);
+
+			if (DeathParticleSystem)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(World, DeathParticleSystem, Location);
+			}
+
+			if (DeathSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(World, DeathSound, Location);
+			}
+
+			GetMesh()->SetVisibility(false);
+
+			World->GetTimerManager().SetTimer(RestartTimerHandle, this, &ARunCharacter::OnDeath, 1.f);
+
+		}
+	}
+}
+
+void ARunCharacter::OnDeath()
+{
+	bIsDead = false;
+
+	if (RestartTimerHandle.IsValid())
+	{
+		GetWorldTimerManager().ClearTimer(RestartTimerHandle);
+	}
+
+	UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), TEXT("RestartLevel"));
+}
+
+
+
 void ARunCharacter::MoveRight(const FInputActionValue& Value)
 {
 	FVector2D InputValue = Value.Get<FVector2D>();
