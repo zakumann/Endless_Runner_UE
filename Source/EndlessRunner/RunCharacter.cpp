@@ -2,6 +2,7 @@
 
 
 #include "RunCharacter.h"
+
 #include "EndlessRunnerGameModeBase.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -13,6 +14,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Controller.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PlayerStart.h"
 
 
 
@@ -41,6 +44,10 @@ void ARunCharacter::BeginPlay()
 	RunGameMode = Cast<AEndlessRunnerGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 
 	check(RunGameMode);
+
+	RunGameMode->OnLevelReset.AddDynamic(this, &ARunCharacter::ResetLevel);
+
+	PlayerStart = Cast<APlayerStart>(UGameplayStatics::GetActorOfClass(GetWorld(), APlayerStart::StaticClass()));
 }
 
 void ARunCharacter::Death()
@@ -83,9 +90,21 @@ void ARunCharacter::OnDeath()
 		GetWorldTimerManager().ClearTimer(RestartTimerHandle);
 	}
 
-	UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), TEXT("RestartLevel"));
+	RunGameMode->PlayerDied();
 }
 
+void ARunCharacter::ResetLevel()
+{
+	bIsDead = false;
+	EnableInput(nullptr);
+	GetMesh()->SetVisibility(true);
+
+	if (PlayerStart)
+	{
+		SetActorLocation(PlayerStart->GetActorLocation());
+		SetActorRotation(PlayerStart->GetActorRotation());
+	}
+}
 
 
 void ARunCharacter::MoveRight(const FInputActionValue& Value)
@@ -158,6 +177,13 @@ void ARunCharacter::MoveDown(const FInputActionValue& Value)
 			AddMovementInput(ForwardDirection, InputValue.Y);
 		}
 	}
+	static FVector Impulse = FVector(0, 0, MoveDownImpulse);
+	GetCharacterMovement()->AddImpulse(Impulse, true);
+}
+
+void ARunCharacter::AddCoin()
+{
+	RunGameMode->AddCoin();
 }
 
 // Called every frame

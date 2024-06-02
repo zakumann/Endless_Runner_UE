@@ -3,6 +3,7 @@
 
 #include "FloorTile.h"
 
+#include "CoinItem.h"
 #include "Obstacle.h"
 #include "EndlessRunnerGameModeBase.h"
 #include "RunCharacter.h"
@@ -56,15 +57,16 @@ void AFloorTile::BeginPlay()
 
 void AFloorTile::SpawnItems()
 {
-	if (IsValid(SmallObstacleClass) && IsValid(BigObstacleClass))
+	if (IsValid(SmallObstacleClass) && IsValid(BigObstacleClass) && IsValid(CoinItemClass))
 	{
-		SpawnLaneItem(CenterLane);
-		SpawnLaneItem(LeftLane);
-		SpawnLaneItem(RightLane);
+		int32 NumBigs = 0;
+		SpawnLaneItem(CenterLane, NumBigs);
+		SpawnLaneItem(LeftLane, NumBigs);
+		SpawnLaneItem(RightLane, NumBigs);
 	}
 }
 
-void AFloorTile::SpawnLaneItem(UArrowComponent* Lane)
+void AFloorTile::SpawnLaneItem(UArrowComponent* Lane, int32& NumBigs)
 {
 	const float RandVal = FMath::FRandRange(0.f, 1.f);
 	FActorSpawnParameters SpawnParameters;
@@ -72,14 +74,35 @@ void AFloorTile::SpawnLaneItem(UArrowComponent* Lane)
 
 	const FTransform& SpawnLocation = Lane->GetComponentTransform();
 
-	if (UKismetMathLibrary::InRange_FloatFloat(RandVal, 0.5f, 0.75f, true, true))
+	if (UKismetMathLibrary::InRange_FloatFloat(RandVal, SpawnPercent1, SpawnPercent2, true, true))
 	{
 		AObstacle* Obstacle = GetWorld()->SpawnActor<AObstacle>(SmallObstacleClass, SpawnLocation, SpawnParameters);
+		ChildActors.Add(Obstacle);
 	}
 
-	else if (UKismetMathLibrary::InRange_FloatFloat(RandVal, 0.75f, 1.f, true, true))
+	else if (UKismetMathLibrary::InRange_FloatFloat(RandVal, SpawnPercent2, SpawnPercent3, true, true))
 	{
-		AObstacle* Obstacle = GetWorld()->SpawnActor<AObstacle>(BigObstacleClass, SpawnLocation, SpawnParameters);
+		if(NumBigs <= 2)
+		{
+			AObstacle* Obstacle = GetWorld()->SpawnActor<AObstacle>(BigObstacleClass, SpawnLocation, SpawnParameters);
+
+			if (Obstacle)
+			{
+				NumBigs += 1;
+			}
+
+			ChildActors.Add(Obstacle);
+		}
+		else
+		{
+			AObstacle* Obstacle = GetWorld()->SpawnActor<AObstacle>(SmallObstacleClass, SpawnLocation, SpawnParameters);
+			ChildActors.Add(Obstacle);
+		}
+	}
+	else if (UKismetMathLibrary::InRange_FloatFloat(RandVal, SpawnPercent3, 1.f, true, true))
+	{
+		ACoinItem* Coin = GetWorld()->SpawnActor<ACoinItem>(CoinItemClass, SpawnLocation, SpawnParameters);
+		ChildActors.Add(Coin);
 	}
 }
 
@@ -102,6 +125,18 @@ void AFloorTile::DestroyFloorTile()
 	{
 		GetWorldTimerManager().ClearTimer(DestroyHandle);
 	}
+	
+	for (auto Child : ChildActors)
+	{
+		if (IsValid(Child))
+		{
+			Child->Destroy();
+		}
+	}
+
+	ChildActors.Empty();
+
+	RunGameMode->RemoveTile(this);
 
 	this->Destroy();
 }

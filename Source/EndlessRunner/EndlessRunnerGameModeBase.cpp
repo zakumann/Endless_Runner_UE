@@ -2,10 +2,24 @@
 
 
 #include "EndlessRunnerGameModeBase.h"
+
 #include "FloorTile.h"
+#include "GameHUD.h"
+#include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 void AEndlessRunnerGameModeBase::BeginPlay()
 {
+	UGameplayStatics::GetPlayerController(GetWorld(), 0)->bShowMouseCursor = true;
+
+	GameHud = Cast<UGameHUD>(CreateWidget(GetWorld(), GameHudClass));
+	check(GameHud);
+
+	GameHud->InitializeHUD(this);
+	GameHud->AddToViewport();
+
+	NumberOfLives = MaxLives;
+
 	CreateInitialFloorTiles();
 }
 
@@ -44,6 +58,8 @@ AFloorTile* AEndlessRunnerGameModeBase::AddFloorTile(const bool bSpawnItems)
 
 		if (Tile)
 		{
+			FloorTiles.Add(Tile);
+
 			if (bSpawnItems)
 			{
 				Tile->SpawnItems();
@@ -59,3 +75,45 @@ AFloorTile* AEndlessRunnerGameModeBase::AddFloorTile(const bool bSpawnItems)
 	return nullptr;
 }
 
+void AEndlessRunnerGameModeBase::AddCoin()
+{
+	TotalCoins += 1;
+
+	OnCoinsCountChanged.Broadcast(TotalCoins);
+}
+
+void AEndlessRunnerGameModeBase::PlayerDied()
+{
+	NumberOfLives -= 1;
+	OnLivesCountChanged.Broadcast(NumberOfLives);
+
+	if (NumberOfLives > 0)
+	{
+		// Interate all FloorTiles and call DestroyFloorTile
+		for (auto Tile : FloorTiles)
+		{
+			Tile->DestroyFloorTile();
+		}
+
+		// Empty our array
+		FloorTiles.Empty();
+
+		// NextSpawnPoint to initial value
+		NextSpawnPoint = FTransform();
+
+		// Create out initial floor tiles
+		CreateInitialFloorTiles();
+
+		// Broadcast level reset event
+		OnLevelReset.Broadcast();
+	}
+	else
+	{
+		//GameOver();
+	}
+}
+
+void AEndlessRunnerGameModeBase::RemoveTile(AFloorTile* Tile)
+{
+	FloorTiles.Remove(Tile);
+}

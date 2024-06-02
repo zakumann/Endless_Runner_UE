@@ -8,6 +8,7 @@
 #include "GameFramework/Actor.h"
 #include "FloorTile.generated.h"
 
+class ACoinItem;
 class UStaticMeshComponent;
 class USceneComponent;
 class UBoxComponent;
@@ -24,6 +25,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
 	TSubclassOf<AObstacle> BigObstacleClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
+	TSubclassOf<ACoinItem> CoinItemClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USceneComponent* SceneComponent;
@@ -46,8 +50,23 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UBoxComponent* FloorTriggerBox;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TArray<AActor*> ChildActors;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
+	float SpawnPercent1 = 0.1f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
+	float SpawnPercent2 = 0.3f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Config")
+	float SpawnPercent3 = 0.5f;
+
 	UFUNCTION(BlueprintCallable)
 	void SpawnItems();
+
+	UFUNCTION(BlueprintCallable)
+	void DestroyFloorTile();
 
 	// Sets default values for this actor's properties
 	AFloorTile();
@@ -68,10 +87,7 @@ protected:
 	void OnTriggerBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void SpawnLaneItem(UArrowComponent* Lane);
-
-	UFUNCTION()
-	void DestroyFloorTile();
+	void SpawnLaneItem(UArrowComponent* Lane, int32& NumBigs);
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

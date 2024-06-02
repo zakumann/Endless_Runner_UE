@@ -30,6 +30,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Assets")
 	class USoundBase* DeathSound;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MoveDownImpulse = -1000.f;
+
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite)
 	int32 CurrentLane = 1;
 
@@ -73,18 +76,33 @@ protected:
 	UFUNCTION()
 	void OnDeath();
 
+	UFUNCTION()
 	void MoveRight(const FInputActionValue& Value);
+
+	UFUNCTION()
 	void MoveLeft(const FInputActionValue& Value);
+
+	UFUNCTION()
 	void MoveDown(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void ResetLevel();
 
 	UPROPERTY()
 	FTimerHandle RestartTimerHandle;
+
+	UPROPERTY()
+	class APlayerStart* PlayerStart;
 
 	UPROPERTY()
 	bool bIsDead = false;
 
 
 public:	
+
+	UFUNCTION()
+	void AddCoin();
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
