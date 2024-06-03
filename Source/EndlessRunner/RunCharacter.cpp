@@ -76,15 +76,12 @@ void ARunCharacter::Death()
 			GetMesh()->SetVisibility(false);
 
 			World->GetTimerManager().SetTimer(RestartTimerHandle, this, &ARunCharacter::OnDeath, 1.f);
-
 		}
 	}
 }
 
 void ARunCharacter::OnDeath()
 {
-	bIsDead = false;
-
 	if (RestartTimerHandle.IsValid())
 	{
 		GetWorldTimerManager().ClearTimer(RestartTimerHandle);

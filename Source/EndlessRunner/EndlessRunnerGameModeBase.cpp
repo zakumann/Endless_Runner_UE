@@ -109,7 +109,21 @@ void AEndlessRunnerGameModeBase::PlayerDied()
 	}
 	else
 	{
-		//GameOver();
+		GameOver();
+
+	}
+}
+
+void AEndlessRunnerGameModeBase::GameOver()
+{
+	if (IsValid(GameOverScreenClass))
+	{
+		UUserWidget* Widget = CreateWidget(GetWorld(), GameOverScreenClass);
+
+		if (Widget)
+		{
+			Widget->AddToViewport();
+		}
 	}
 }
 
